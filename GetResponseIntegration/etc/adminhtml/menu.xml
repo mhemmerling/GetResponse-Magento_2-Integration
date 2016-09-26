@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../../Magento/Backend/etc/menu.xsd">
+    <menu>
+        <add id="GetResponse_GetResponseIntegration" title="GetResponse" module="GetResponse_GetResponseIntegration" sortOrder="100" resource="GetResponse_GetResponseIntegration::settings"/>
+
+        <add id="GetResponse_GetResponseIntegration::settings" title="GetResponse account" module="GetResponse_GetResponseIntegration" sortOrder="100" parent="GetResponse_GetResponseIntegration" action="getresponseintegration/settings" resource="GetResponse_GetResponseIntegration::settings"/>
+
+        <add id="GetResponse_GetResponseIntegration::export" title="Export customers" module="GetResponse_GetResponseIntegration" sortOrder="100" parent="GetResponse_GetResponseIntegration" action="getresponseintegration/export" resource="GetResponse_GetResponseIntegration::settings"/>
+
+        <add id="GetResponse_GetResponseIntegration::registration" title="Subscription via registration page" module="GetResponse_GetResponseIntegration" sortOrder="100" parent="GetResponse_GetResponseIntegration" action="getresponseintegration/settings/registration" resource="GetResponse_GetResponseIntegration::settings"/>
+
+        <add id="GetResponse_GetResponseIntegration::webform" title="Subscription via a form" module="GetResponse_GetResponseIntegration" sortOrder="100" parent="GetResponse_GetResponseIntegration" action="getresponseintegration/settings/webform" resource="GetResponse_GetResponseIntegration::settings"/>
+
+        <add id="GetResponse_GetResponseIntegration::automation" title="Campaign rules" module="GetResponse_GetResponseIntegration" sortOrder="100" parent="GetResponse_GetResponseIntegration" action="getresponseintegration/settings/automation" resource="GetResponse_GetResponseIntegration::settings"/>
+    </menu>
+</config>

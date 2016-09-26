@@ -1,0 +1,337 @@
+<?php /** @var $block \GetResponse\GetResponseIntegration\Block\Export */?>
+
+<?php
+if (!$block->checkApiKey()) {
+    return;
+}
+
+$categories = $block->getStoreCategories();
+$campaigns = $block->getCampaigns();
+$autoresponders = $block->getAutoresponders();
+$automations = $block->getAutomations()->getData();
+
+?>
+<?php if (count($categories) == 0) { ?>
+    <div class="message message-error error">
+        <div data-ui-id="messages-message-error">
+            You have no categories in your store. Please create category to set campaign rules.
+        </div>
+    </div>
+    <br/>
+<?php } ?>
+
+<div>
+    <p>
+        You to automatically move or copy your customers between your GetResponse campaigns when people purchase in
+        a particular Magento product category. To do this, click “Create a new rule” button. When you select
+        "move" option, the rule moves contacts from ALL existing campaigns to the destination campaign.
+        To add contacts to another campaign choose "copy" option.
+    </p>
+</div>
+
+<style>
+    .label {
+        font-weight: bold;
+    }
+
+    .label label {
+        display: inline-block;
+    }
+
+    td.label {
+        vertical-align: top;
+    }
+
+    .value input {
+        margin-top: 4px;
+        width: 100%;
+    }
+
+    .note {
+        color: #303030;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+
+    .admin__scope-old input[type="checkbox"] {
+        -moz-appearance: checkbox;
+    }
+
+    tr {
+        margin-bottom: 5px;
+    }
+</style>
+
+<button id="getresponse_create_new_rule" onclick="confirmationOpened('add')" title="Add new campaign" class="action-default scalable save primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false" style="cursor: pointer;">
+    <span class="ui-button-text">
+        <span>Create new rule</span>
+    </span>
+</button>
+
+<div id="automations-table" class="admin__data-grid-wrap" data-role="grid-wrapper">
+    <table class="data-grid" id="automation_table" style="<?php if (empty($automations)) { ?>display: none; <?php } ?>">
+        <thead>
+        <tr>
+            <th class="data-grid-th" style="text-align:center; display: none">
+                <span class="data-grid-cell-content">ID</span>
+            </th>
+
+            <th class="data-grid-th">
+                <span class="data-grid-cell-content">Category</span>
+            </th>
+
+            <th class="data-grid-th">
+                <span class="data-grid-cell-content">Campaign</span>
+            </th>
+
+            <th class="data-grid-th">
+                <span class="data-grid-cell-content">Cycle Day</span>
+            </th>
+
+            <th class="data-grid-th">
+                <span class="data-grid-cell-content">Rule</span>
+            </th>
+
+            <th class="data-grid-th">
+                <span class="data-grid-cell-content">Status</span>
+            </th>
+
+            <th class="data-grid-th">
+                <span class="data-grid-cell-content">Actions</span>
+            </th>
+        </tr>
+        </thead>
+        <tbody>
+        <?php
+            foreach ($automations as $automation) {
+                echo '<tr class="data-row" data-role="data-grid-bulk-row" id="automation' . $automation['id'] . '">';
+                echo '<td style="text-align:center;display:none;" class="id">';
+                echo $automation['id'];
+                echo '</td>';
+
+                echo '<td class="category" data-value="' . $automation['category_id'] . '">';
+                echo $block->getCategoryName($automation['category_id']);
+                echo '</td>';
+
+                echo '<td class="campaign" data-value="' . $automation['campaign_id'] . '">';
+                echo $block->getCampaign($automation['campaign_id'])->name;
+                echo '</td>';
+
+                echo '<td class="cycle_day_edit">';
+                echo (isset($automation['cycle_day']) and $automation['cycle_day'] != '') ? $automation['cycle_day'] : 'Not set';
+                echo '</td>';
+
+                echo '<td class="action">';
+                echo $automation['action'];
+                echo '</td>';
+                ?>
+                <td style="text-align: center;">
+                    <div class="onoffswitch">
+                        <label for="<?php echo 'myonoffswitch' . $automation['id'];?>"></label>
+                        <input type="checkbox" onclick="changeRuleStatus('<?php echo $automation['id'];?>')" name="onoffswitch" class="onoffswitch-checkbox" id="<?php echo 'myonoffswitch' . $automation['id'];?>" <?php if ($automation['active']) echo 'checked="checked"'; ?>>
+                        <span id="<?php echo 'spinner' . $automation['id'];?>" style="top:2px;margin-left:6px;width:16px;display:none;"><img src="<?php echo $block->getViewFileUrl('GetResponse_GetResponseIntegration::images/ajax-loader-small.gif'); ?>" /></span>
+                        <div style="top:0px;margin-left:6px;" id="<?php echo 'message' . $automation['id'];?>"></div>
+                    </div>
+                </td>
+                <td>
+                    <button data-id="<?php echo $automation['id'];?>" onclick="confirmationOpened('edit', '<?php echo $automation['id'];?>')" title="Edit rule" type="submit" class="toggle_button primary edit_automation_button" role="button" aria-disabled="false" style="padding: 0px 15px; height: 20px;">
+                        <span class="ui-button-text">
+                            <span>Edit</span>
+                        </span>
+                    </button>
+                    <button data-id="<?php echo $automation['id'];?>" onclick="deleteOpened('<?php echo $automation['id'];?>')" title="Delete rule" type="submit" class="toggle_button primary" role="button" aria-disabled="false" style="padding: 0px 15px; height: 20px;">
+                        <span class="ui-button-text">
+                            <span>Delete</span>
+                        </span>
+                    </button>
+                    <div style="display:inline-block;position:relative;float:left;">
+                        <span id="<?php echo 'spinner_delete' . $automation['id'];?>" style="width:16px;top:2px;margin-left:6px;display:none;"><img src="<?php echo $block->getViewFileUrl('GetResponse_GetResponseIntegration::images/ajax-loader-small.gif'); ?>" /></span>
+                    </div>
+                </td>
+                <?php
+                echo '</tr>';
+            }
+        ?>
+        </tbody>
+    </table>
+</div>
+
+<?php include 'automation_modal.phtml'; ?>
+
+<div id="popup-delete" style="display: none;">
+    <div>These rule will be permanently deleted. Are you sure?</div>
+    <input type="hidden" id="delete_automation_id" name="delete_automation_id" value=""/>
+</div>
+
+<script>
+    var campaign_id = jQuery('#campaign_id'), campaign_id_edit = jQuery('#campaign_id_edit');
+    var cycle_day = jQuery('#cycle_day'), cycle_day_edit = jQuery('#cycle_day_edit'), gr_autoresponder = jQuery('#gr_autoresponder');
+
+    var autoresponders = <?php echo json_encode($autoresponders); ?>;
+    jQuery('.cycle_day').show();
+
+    function populateSelectWithAutoresponders(cycle_day, campaign) {
+        cycle_day.empty();
+        var options = '';
+        var campaign_autoresponders = autoresponders[campaign.val()];
+        if (campaign_autoresponders == undefined) {
+            campaign_autoresponders = autoresponders[campaign.attr('data-value')];
+        }
+        if (typeof campaign_autoresponders == 'object' && campaign_autoresponders.length > 0) {
+            for (var i = 0; i < campaign_autoresponders.length; i++) {
+                options += '<option value="' + campaign_autoresponders[i]['dayOfCycle']
+                    + '">(Day: ' + campaign_autoresponders[i]['dayOfCycle'] + ') '
+                    + campaign_autoresponders[i]['name']
+                    + ' (Subject: ' + campaign_autoresponders[i]['subject'] +')</option>';
+            }
+            cycle_day.prop('disabled', false);
+            gr_autoresponder.prop('disabled', false);
+        } else {
+            options = '<option value="">No autoresponders for chosen campaign!</option>';
+            cycle_day.prop('disabled', true);
+            gr_autoresponder.prop('disabled', true).prop('checked', false);
+        }
+        cycle_day.append(options);
+    }
+
+    populateSelectWithAutoresponders(cycle_day, campaign_id);
+
+    campaign_id.change(function() {
+        populateSelectWithAutoresponders(cycle_day, campaign_id);
+    });
+
+    campaign_id_edit.change(function() {
+        populateSelectWithAutoresponders(cycle_day_edit, campaign_id_edit);
+    });
+
+    function changeRuleStatus(automation_id) {
+        var url = '<?php echo $block->getUrl('getresponseintegration/settings/automationpost'); ?>?isAjax=true';
+        var enable = jQuery('#myonoffswitch'+automation_id).prop('checked');
+
+        jQuery.ajax({
+            type:   'post',
+            url:    url,
+            data:   {
+                form_key:   FORM_KEY,
+                toggle_status:  enable,
+                automation_id:  automation_id
+            },
+            beforeSend: function() {
+                jQuery('#spinner' + automation_id).show();
+                jQuery('#myonoffswitch' + automation_id).prop('disabled', true);
+                jQuery('#message' + automation_id).hide();
+            },
+            success: function(data) {
+                try {
+                    var json = jQuery.parseJSON(data);
+                    if (json.success == 'true') {
+                        jQuery('#container').prepend(message('Status successfully changed.'));
+                        setTimeout(function() {
+                            jQuery('#gr_integration_message').hide('slow');
+                        }, 2000);
+                    } else {
+                        jQuery('#message' + automation_id).show().html('<span style="color:red; padding-left: 10px;min-width:200px;">Error</span>');
+                        setTimeout(function() {
+                            jQuery('#message' + automation_id).fadeOut('slow');
+                        }, 2000);
+                        jQuery('#myonoffswitch' + automation_id).prop('checked', !enable);
+                    }
+                } catch(e) {
+                    jQuery('#message' + automation_id).show().html('<span style="color:red; padding-left: 10px;min-width:200px;">Error</span>');
+                    setTimeout(function() {
+                        jQuery('#message' + automation_id).fadeOut('slow');
+                    }, 2000);
+                    jQuery('#myonoffswitch' + automation_id).prop('checked', !enable);
+                }
+            },
+            error: function() {
+                jQuery('#message' + automation_id).show().html('<span style="color:red; padding-left: 10px;min-width:200px;">Error</span>');
+                setTimeout(function() {
+                    jQuery('#message' + automation_id).fadeOut('slow');
+                }, 2000);
+                jQuery('#myonoffswitch' + automation_id).prop('checked', !enable);
+            },
+            complete: function() {
+                jQuery('#spinner' + automation_id).hide();
+                jQuery('#myonoffswitch' + automation_id).prop('disabled', false);
+            }
+        });
+    }
+
+    function message(text) {
+        return '<div id="gr_integration_message" class="messages"><div class="message message-success success"><div data-ui-id="messages-message-success">' + text + '</div></div></div>';
+    }
+
+    function deleteOpened(aid) {
+
+        if (aid != '') {
+            jQuery('#delete_automation_id').val(aid);
+        }
+
+        require(
+            [
+                'jquery',
+                'Magento_Ui/js/modal/modal'
+            ],
+            function($, modal) {
+                var delete_url = '<?php echo $block->getUrl('getresponseintegration/settings/automationpost'); ?>?isAjax=true';
+                var options = {
+                    type: 'popup',
+                    responsive: true,
+                    innerScroll: true,
+                    title: 'Delete rule',
+                    buttons: [
+                        {
+                            text: $.mage.__('Delete'),
+                            class: 'action-secondary action-dismiss',
+                            click: function () {
+                                var automation_id = jQuery('#popup-delete').find('#delete_automation_id').val();
+
+                                jQuery.ajax({
+                                    type:   'post',
+                                    url:    delete_url,
+                                    data: {
+                                        form_key: FORM_KEY,
+                                        automation_id: automation_id,
+                                        delete_automation: 'true'
+                                    },
+                                    beforeSend: function() {
+                                        jQuery('#spinner_delete' + automation_id).show();
+                                    },
+                                    success: function (data) {
+                                        var json = jQuery.parseJSON(data);
+                                        jQuery('#container').prepend(message('You successfully removed automation!')); // potwierdzenie
+                                        setTimeout(function() {
+                                            jQuery('#gr_integration_message').hide('slow');
+                                        }, 4000);
+                                        jQuery('#automation' + automation_id).hide('slow'); // koniec potwierdzenia
+                                        $('#popup-delete').modal('closeModal');
+                                        if (0 == json.total) {
+                                            jQuery('#automation_table').hide();
+                                        }
+                                    },
+                                    error: function () {
+                                    },
+                                    complete: function() {
+                                        jQuery('#spinner_delete' + automation_id).hide();
+                                    }
+                                });
+                            }
+                        },
+                        {
+                            text: $.mage.__('Cancel'),
+                            class: 'action-primary action-accept',
+                            click: function () {
+                                this.closeModal();
+                            }
+                        }
+                    ]
+                };
+
+                var popup = modal(options, $('#popup-delete'));
+                $('#popup-delete').modal('openModal');
+            }
+        );
+    }
+
+</script>

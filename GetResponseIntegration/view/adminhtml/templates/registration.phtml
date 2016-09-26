@@ -1,0 +1,285 @@
+<?php /** @var $block \GetResponse\GetResponseIntegration\Block\Export */?>
+
+<?php
+if (!$block->checkApiKey()) {
+    return;
+}
+$campaigns = $block->getCampaigns();
+$settings = $block->getSettings();
+$customs = $block->getDefaultCustoms()->getData();
+$autoresponders = $block->getAutoresponders();
+
+?>
+
+<div>
+    <p>
+        You can add subscribers to a specific GetResponse campaign when people register to your online shop (using the
+        registration page). Select an existing campaign or create a new one for your visitors. Select if you want to
+        update specific fields. When this option is off only new contacts are exported.
+    </p>
+</div>
+
+<style>
+    .label {
+        font-weight: bold;
+    }
+
+    .label label {
+        display: inline-block;
+    }
+
+    td.label {
+        vertical-align: top;
+    }
+
+    .value input {
+        margin-top: 4px;
+        width: 100%;
+    }
+
+    .note {
+        color: #303030;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+
+    .admin__scope-old input[type="checkbox"] {
+        -moz-appearance: checkbox;
+    }
+
+    tr {
+        margin-bottom: 5px;
+    }
+
+    .button-margin {
+        margin-top: 10px;
+    }
+
+</style>
+
+<form method="post" action="<?php echo $block->getUrl('getresponseintegration/settings/registrationpost'); ?>">
+    <?php echo $block->getBlockHtml('formkey'); ?>
+        <table class="config admin__scope-old">
+            <tbody>
+            <tr>
+                <td class="label" style="width:340px;">
+                    <input
+                        class="GR_checkbox"
+                        type="checkbox"
+                        name="gr_enabled"
+                        id="gr_enabled"
+                        value="1"
+                        <?php
+                        if (isset($settings['active_subscription']) && $settings['active_subscription'] == true) {
+                            echo ' checked="checked"';
+                        }
+                        ?>
+                    />
+                    <label for="gr_enabled" style="display: inline">Allow subscriptions when customers register</label>
+                </td>
+                <td class="value">
+                </td>
+            </tr>
+
+            <tr class="forms"
+                <?php
+                if (!isset($settings['active_subscription']) || $settings['active_subscription'] != 1) {
+                    echo ' style="display: none;"';
+                }
+                ?>
+            >
+                <td class="label">
+                    <label for="campaign_id" style="margin-top: 7px;">Select your campaign</label>
+                </td>
+                <td class="value">
+                    <select name="campaign_id" id="campaign_id">
+                        <option value="">Choose campaign</option>
+                        <?php
+                        if (count($campaigns) > 0) {
+                            foreach ($campaigns as $campaign) {
+                                echo '<option value="' . $campaign->campaignId . '"';
+                                if (!empty($settings['campaign_id']) && $settings['campaign_id'] == $campaign->campaignId) {
+                                    echo ' selected="selected"';
+                                }
+                                echo '>' . $campaign->name . '</option>';
+                            }
+                        }
+                        ?>
+                    </select>
+                    <div id="getresponse_disconnect" data-bind="click: confirmationOpened" title="Add new campaign" class="action-default scalable save primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false" style="cursor: pointer;">
+                        <span class="ui-button-text">
+                            <span>Add new campaign</span>
+                        </span>
+                    </div>
+                    <p class="note">
+                    <span>
+<!--                        Select target campaign.-->
+                    </span>
+                    </p>
+                </td>
+            </tr>
+
+            <tr class="forms"
+                <?php
+                if (!isset($settings['active_subscription']) || $settings['active_subscription'] != 1) {
+                    echo ' style="display: none;"';
+                }
+                ?>
+            >
+                <td class="label">
+<!--                    <label for="gr_autoresponder" style="margin-top: 8px;">Add into the cycle on day</label>-->
+                </td>
+                <td class="value">
+                    <input
+                        class="GR_checkbox"
+                        type="checkbox"
+                        name="gr_autoresponder"
+                        id="gr_autoresponder"
+                        style="margin-bottom: 5px;"
+                        value="1"
+                        <?php
+                        if (isset($settings['cycle_day']) && $settings['cycle_day'] != '0') {
+                            echo ' checked="checked"';
+                        }
+                        ?>
+                    />
+                    <span>Add to autoresponder sequence</span>
+                    <br/>
+                    <span class="cycle_day">
+                        <select name="cycle_day" id="cycle_day" disabled="disabled">
+                        </select>
+                    </span>
+                    <p class="note">
+                    <span>
+<!--                        Select if you want to add customers to autoresponder sequence.-->
+                    </span>
+                    </p>
+                </td>
+            </tr>
+
+            <tr class="forms"
+                <?php
+                if (!isset($settings['active_subscription']) || $settings['active_subscription'] != 1) {
+                    echo ' style="display: none;"';
+                }
+                ?>
+            >
+                <td class="label">
+                    <input
+                        class="GR_checkbox"
+                        type="checkbox"
+                        name="gr_sync_order_data"
+                        id="gr_sync_order_data"
+                        value="1"
+                        <?php
+                        if (isset($settings['update']) && $settings['update'] == 1) {
+                            echo ' checked="checked"';
+                        }
+                        ?>
+                    />
+                    <label for="gr_sync_order_data" style="display: inline;">Update contact details</label>
+                    <a class="gr-tooltip" style="display: inline-block;margin: 1px 1px 1px 3px;">
+                        <span class="gr-tip">
+                            <span style="font-weight: normal;">
+                                Select this option if you want to overwrite contact details that already exist in your GetResponse database. Clear this option to keep existing data intact.
+                            </span>
+                        </span>
+                    </a>
+                </td>
+                <td class="value">
+
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+
+        <div
+            class="forms config admin__scope-old"
+            <?php
+            if (!isset($settings['active_subscription']) || $settings['active_subscription'] != 1) {
+                echo ' style="display: none;"';
+            }
+            ?>
+        >
+            <div id="customNameFields" class="updateforms"<?php
+            if (!isset($settings['gr_sync_order_data']) || $settings['gr_sync_order_data'] != 1) {
+                echo ' style="display: none;"';
+            }
+            ?>
+            >
+                <br/>
+                Copy Magento customer details to custom fields.
+                <br/>
+                <div class="gr-custom-field">
+                    <select class="jsNarrowSelect" name="gr_custom_fields" multiple="multiple">
+                        <?php
+                        if (!empty($customs)) {
+                            foreach ($customs as $custom) {
+                                echo '<option data-inputvalue="' . $custom['custom_name'] . '" value="' . $custom['custom_value'] .
+                                    '" id="' . $custom['custom_value'] . '"', ( $custom['default'] == '1' || $custom['active_custom'] == '1')
+                                    ? ' selected="selected"' : '', $custom['default'] == '1'
+                                    ? ' disabled="disabled"' : '', '>', $custom['custom_field'], '</option>';
+                            }
+                        }
+                        ?>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <button id="save" title="Save" type="submit" class="action-default scalable save primary ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only button-margin" role="button" aria-disabled="false">
+            <span class="ui-button-text">
+                <span>Save</span>
+            </span>
+        </button>
+</form>
+
+<?php include 'new_campaign.phtml'; ?>
+
+<script>
+    var grsod = jQuery('#gr_sync_order_data'), sod = jQuery('#gr_enabled'), forms = jQuery('.forms'), updateforms = jQuery('.updateforms');
+    var campaign_id = jQuery('#campaign_id'), cycle_day = jQuery('#cycle_day'), gr_autoresponder = jQuery('#gr_autoresponder');
+    if (sod.prop('checked') == true) {
+        forms.show();
+    }
+    sod.change(function () {
+        forms.toggle('slow');
+    });
+    if (grsod.prop('checked') == true) {
+        updateforms.show();
+    }
+    grsod.change(function () {
+        updateforms.toggle('slow');
+    });
+    jQuery('.jsNarrowSelect').selectNarrowDown();
+
+    var autoresponders = <?php echo json_encode($autoresponders); ?>;
+
+    function populateSelectWithAutoresponders() {
+        cycle_day.empty();
+        var options = '';
+        var campaign_autoresponders = autoresponders[campaign_id.val()];
+        if (typeof campaign_autoresponders == 'object' && campaign_autoresponders.length > 0) {
+            for (var i = 0; i < campaign_autoresponders.length; i++) {
+                options += '<option value="' + campaign_autoresponders[i]['dayOfCycle']
+                    + '">(Day: ' + campaign_autoresponders[i]['dayOfCycle'] + ') '
+                    + campaign_autoresponders[i]['name']
+                    + ' (Subject: ' + campaign_autoresponders[i]['subject'] +')</option>';
+            }
+            cycle_day.prop('disabled', false);
+            gr_autoresponder.prop('disabled', false);
+        } else {
+            options = '<option value="">no autoresponders</option>';
+            cycle_day.prop('disabled', true);
+            gr_autoresponder.prop('disabled', true).prop('checked', false);
+        }
+        cycle_day.append(options);
+    }
+
+    populateSelectWithAutoresponders();
+
+    campaign_id.change(function() {
+        populateSelectWithAutoresponders();
+    });
+</script>
